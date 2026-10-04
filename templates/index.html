@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parkinson's Disease Prediction System | Clinical Decision Support</title>
+    
+    <!-- Google Fonts: Outfit for clean, human, editorial typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Bespoke Warm Editorial Clinical Palette (Clean Light Medical Theme) */
+            --bg-main: #f8f7f4;           /* Warm Sand / Linen Parchment */
+            --bg-card: #ffffff;           /* Crisp Pure White Surface */
+            --bg-subtle: #f1efe9;         /* Soft Sand Neutral */
+            --bg-input: #faf9f6;          /* Clean Input Fill */
+            --border-color: #e2dfd5;      /* Warm Architectural Border */
+            --border-focus: #1d4ed8;      /* Deep Sapphire Blue */
+            
+            --text-primary: #1c1917;        /* Deep Charcoal Ink */
+            --text-secondary: #44403c;      /* Muted Slate Charcoal */
+            --text-muted: #78716c;          /* Warm Taupe Gray */
+            
+            --accent-brand: #1e3a8a;        /* Deep Mineral Navy / Blue */
+            --accent-brand-light: #eff6ff;  /* Soft Blue Tint */
+            --accent-brand-border: #bfdbfe;
+            
+            --risk-low: #047857;           /* Deep Sage Emerald */
+            --risk-low-bg: #ecfdf5;
+            --risk-low-border: #a7f3d0;
+            
+            --risk-mod: #d97706;           /* Warm Burnt Ocher */
+            --risk-mod-bg: #fffbeb;
+            --risk-mod-border: #fde68a;
+            
+            --risk-high: #c2410c;          /* Terracotta Rust Crimson */
+            --risk-high-bg: #fff1f2;
+            --risk-high-border: #fecdd3;
+            
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --shadow-subtle: 0 4px 20px -2px rgba(28, 25, 23, 0.06);
+            --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 10px 25px -5px rgba(28, 25, 23, 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+        }
+
+        /* Top Editorial Navigation Header */
+        .navbar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.1rem 2.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent-brand);
+            letter-spacing: -0.4px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--accent-brand);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .badge-clinical {
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: var(--accent-brand-light);
+            color: var(--accent-brand);
+            border: 1px solid var(--accent-brand-border);
+            padding: 0.25rem 0.7rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.4rem;
+            background: var(--bg-subtle);
+            padding: 0.25rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.6rem 1.25rem;
+            border-radius: 7px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-card);
+            color: var(--accent-brand);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Main Container Layout */
+        .main-container {
+            max-width: 1380px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.2rem;
+            flex: 1;
+        }
+
+        /* Clinical Disclaimer Banner */
+        .clinical-disclaimer {
+            background: #fff8f0;
+            border: 1px solid #fed7aa;
+            border-left: 4px solid var(--risk-mod);
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #7c2d12;
+        }
+
+        .clinical-disclaimer i {
+            font-size: 1.3rem;
+            color: var(--risk-mod);
+        }
+
+        /* Tab Content Grid */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: 1fr 410px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .assessment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-card);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-title i {
+            color: var(--accent-brand);
+        }
+
+        /* Preset Actions */
+        .preset-actions {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-preset {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn-preset:hover {
+            border-color: var(--accent-brand);
+            color: var(--accent-brand);
+            background: var(--accent-brand-light);
+        }
+
+        /* Form Controls */
+        .feature-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 1.6rem;
+        }
+
+        .section-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--accent-brand);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .form-control {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.6rem 0.8rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+        }
+
+        .btn-primary {
+            background: var(--accent-brand);
+            color: white;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.65rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            box-shadow: 0 6px 16px rgba(30, 58, 138, 0.3);
+        }
+
+        /* Results Panel */
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: sticky;
+            top: 90px;
+        }
+
+        .gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 0;
+            position: relative;
+        }
+
+        .probability-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-brand) 0deg, var(--bg-subtle) 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .probability-circle::after {
+            content: '';
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        .probability-inner {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .probability-value {
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .probability-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 0.2rem;
+        }
+
+        /* Risk Badge */
+        .risk-badge {
+            padding: 0.65rem 1.25rem;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        .risk-badge.low {
+            background: var(--risk-low-bg);
+            color: var(--risk-low);
+            border: 1px solid var(--risk-low-border);
+        }
+
+        .risk-badge.moderate {
+            background: var(--risk-mod-bg);
+            color: var(--risk-mod);
+            border: 1px solid var(--risk-mod-border);
+        }
+
+        .risk-badge.high {
+            background: var(--risk-high-bg);
+            color: var(--risk-high);
+            border: 1px solid var(--risk-high-border);
+        }
+
+        .recommendation-box {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .recommendation-box h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Metrics Summary Cards */
+        .metrics-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            box-shadow: var(--shadow-card);
+        }
+
+        .metric-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .metric-val {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .metric-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Plots Gallery Grid */
+        .plots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .plots-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .plot-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+
+        .plot-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .plot-card h3 i {
+            color: var(--accent-brand);
+        }
+
+        .plot-card img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Editorial Footer */
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 3rem;
+            background: var(--bg-card);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation Bar -->
+    <nav class="navbar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-notes-medical"></i>
+            </div>
+            <div>
+                <div>Parkinson's Detection System</div>
+                <span class="badge-clinical"><i class="fa-solid fa-stethoscope"></i> Decision Support AI</span>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" id="tab-btn-assess" onclick="switchTab('assess')">
+                <i class="fa-solid fa-user-doctor"></i> Patient Assessment
+            </button>
+            <button class="tab-btn" id="tab-btn-metrics" onclick="switchTab('metrics')">
+                <i class="fa-solid fa-chart-pie"></i> Model Metrics & EDA
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-container">
+        
+        <!-- Clinical Disclaimer Banner -->
+        <div class="clinical-disclaimer">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>Clinical Screening Notice:</strong> This diagnostic decision-support system evaluates acoustic vocal perturbation biomarkers. It is intended strictly to assist clinicians and is <u>not</u> a diagnostic replacement for a physician.
+            </div>
+        </div>
+
+        <!-- TAB 1: Patient Assessment Form & Live Prediction -->
+        <div id="tab-assess" class="tab-content active">
+            <div class="assessment-grid">
+                
+                <!-- Left Column: Input Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-sliders"></i> Vocal Biomarker Parameters
+                        </div>
+                        <div class="preset-actions">
+                            <button class="btn-preset" id="btn-load-healthy" onclick="loadSample('healthy')">
+                                <i class="fa-solid fa-heart-pulse"></i> Healthy Sample
+                            </button>
+                            <button class="btn-preset" id="btn-load-high-risk" onclick="loadSample('high_risk')">
+                                <i class="fa-solid fa-triangle-exclamation"></i> High Risk Sample
+                            </button>
+                            <button class="btn-preset" id="btn-load-mod-risk" onclick="loadSample('moderate_risk')">
+                                <i class="fa-solid fa-shield-cat"></i> Moderate Sample
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="prediction-form" onsubmit="handlePredict(event)">
+                        <div class="feature-sections">
+                            
+                            <!-- Section 1: Fundamental Frequencies -->
+                            <div>
+                                <div class="section-label"><i class="fa-solid fa-wave-square"></i> 1. Fundamental Frequency (Hz)</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="MDVP:Fo(Hz)">Average Pitch (Fo) <span>Hz</span></label>
+                                        <input type="number" step="0.001" id="MDVP:Fo(Hz)" class="form-control" required value="197.076">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="MDVP:Fhi(Hz)">Max Pitch (Fhi) <span>Hz</span></label>
+                                        <input type="number" step="0.001" id="MDVP:Fhi(Hz)" class="form-control" required value="206.896">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="MDVP:Flo(Hz)">Min Pitch (Flo) <span>Hz</span></label>
+                                        <input type="number" step="0.001" id="MDVP:Flo(Hz)" class="form-control" required value="192.055">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 2: Jitter Measures -->
+                            <div>
+                                <div class="section-label"><i class="fa-solid fa-bolt"></i> 2. Frequency Jitter (Pitch Instability)</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="MDVP:Jitter(%)">Jitter (%)</label>
+                                        <input type="number" step="0.00001" id="MDVP:Jitter(%)" class="form-control" required value="0.00289">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="MDVP:Jitter(Abs)">Jitter (Abs)</label>
+                                        <input type="number" step="0.000001" id="MDVP:Jitter(Abs)" class="form-control" required value="0.00001">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="MDVP:RAP">RAP</label>
+                                        <input type="number" step="0.00001" id="MDVP:RAP" class="form-control" required value="0.00166">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="MDVP:PPQ">PPQ</label>
+                                        <input type="number" step="0.00001" id="MDVP:PPQ" class="form-control" required value="0.00168">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Jitter:DDP">Jitter DDP</label>
+                                        <input type="number" step="0.00001" id="Jitter:DDP" class="form-control" required value="0.00498">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 3: Shimmer Measures -->
+                            <div>
+                                <div class="section-label"><i class="fa-solid fa-volume-high"></i> 3. Amplitude Shimmer (Loudness Variation)</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="MDVP:Shimmer">Shimmer</label>
+                                        <input type="number" step="0.00001" id="MDVP:Shimmer" class="form-control" required value="0.01098">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="MDVP:Shimmer(dB)">Shimmer (dB)</label>
+                                        <input type="number" step="0.00001" id="MDVP:Shimmer(dB)" class="form-control" required value="0.09700">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Shimmer:APQ3">APQ3</label>
+                                        <input type="number" step="0.00001" id="Shimmer:APQ3" class="form-control" required value="0.00563">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Shimmer:APQ5">APQ5</label>
+                                        <input type="number" step="0.00001" id="Shimmer:APQ5" class="form-control" required value="0.00680">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="MDVP:APQ">APQ</label>
+                                        <input type="number" step="0.00001" id="MDVP:APQ" class="form-control" required value="0.00802">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Shimmer:DDA">Shimmer DDA</label>
+                                        <input type="number" step="0.00001" id="Shimmer:DDA" class="form-control" required value="0.01689">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 4: Noise Ratios & Non-Linear Dynamics -->
+                            <div>
+                                <div class="section-label"><i class="fa-solid fa-chart-area"></i> 4. Signal Noise Ratios & Non-Linear Measures</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="NHR">NHR (Noise ratio)</label>
+                                        <input type="number" step="0.00001" id="NHR" class="form-control" required value="0.00339">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="HNR">HNR (Harmonic ratio)</label>
+                                        <input type="number" step="0.001" id="HNR" class="form-control" required value="26.775">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="RPDE">RPDE (Entropy)</label>
+                                        <input type="number" step="0.000001" id="RPDE" class="form-control" required value="0.422229">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="DFA">DFA (Fluctuation)</label>
+                                        <input type="number" step="0.000001" id="DFA" class="form-control" required value="0.648633">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="spread1">Spread1</label>
+                                        <input type="number" step="0.000001" id="spread1" class="form-control" required value="-7.348300">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="spread2">Spread2</label>
+                                        <input type="number" step="0.000001" id="spread2" class="form-control" required value="0.177551">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="D2">D2 (Correlation Dim)</label>
+                                        <input type="number" step="0.000001" id="D2" class="form-control" required value="1.743867">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="PPE">PPE (Pitch Entropy)</label>
+                                        <input type="number" step="0.000001" id="PPE" class="form-control" required value="0.085569">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="btn-submit-predict">
+                            <i class="fa-solid fa-stethoscope"></i> Calculate Parkinson's Risk Prediction
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Column: Live Prediction Results Panel -->
+                <div class="results-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fa-solid fa-chart-pie"></i> Risk Evaluation Result
+                            </div>
+                            <span class="badge-clinical" id="res-model-used">XGBoost</span>
+                        </div>
+
+                        <div class="gauge-container">
+                            <div class="probability-circle" id="prob-circle">
+                                <div class="probability-inner">
+                                    <div class="probability-value" id="prob-val">--%</div>
+                                    <div class="probability-label">PD Probability</div>
+                                </div>
+                            </div>
+
+                            <div class="risk-badge low" id="risk-badge">
+                                <i class="fa-solid fa-circle-check"></i> <span id="risk-text">Awaiting Assessment</span>
+                            </div>
+                        </div>
+
+                        <div class="recommendation-box" style="margin-top: 1rem;">
+                            <h4><i class="fa-solid fa-user-doctor"></i> Clinical Guidance</h4>
+                            <p id="res-recommendation">Enter patient vocal measurement parameters and click "Calculate Risk Prediction" to generate an assessment.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB 2: Model Performance Metrics & EDA Gallery -->
+        <div id="tab-metrics" class="tab-content">
+            
+            <!-- Summary Metric Cards -->
+            <div class="metrics-summary-grid">
+                <div class="metric-card">
+                    <span class="metric-title">Tuned Model</span>
+                    <span class="metric-val" id="meta-model-name">XGBoost</span>
+                    <span class="metric-desc">Tuned via 5-Fold Stratified CV</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">ROC-AUC Score</span>
+                    <span class="metric-val" style="color: var(--accent-brand);">0.9690</span>
+                    <span class="metric-desc">Held-out test set discrimination</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Sensitivity (Recall)</span>
+                    <span class="metric-val" style="color: var(--risk-low);">93.10%</span>
+                    <span class="metric-desc">Low false negative rate for screening</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Specificity</span>
+                    <span class="metric-val" style="color: var(--accent-brand);">80.00%</span>
+                    <span class="metric-desc">Healthy control exclusion rate</span>
+                </div>
+            </div>
+
+            <!-- Visualization Plots Gallery -->
+            <div class="plots-grid">
+                <div class="plot-card">
+                    <h3><i class="fa-solid fa-chart-line"></i> ROC Curve (Held-Out Test Set)</h3>
+                    <img src="/outputs/roc_curve.png" alt="ROC Curve">
+                </div>
+                <div class="plot-card">
+                    <h3><i class="fa-solid fa-table-cells"></i> Confusion Matrix Heatmap</h3>
+                    <img src="/outputs/confusion_matrix.png" alt="Confusion Matrix">
+                </div>
+                <div class="plot-card">
+                    <h3><i class="fa-solid fa-ranking-star"></i> Top Biomarker Feature Importances</h3>
+                    <img src="/outputs/feature_importance.png" alt="Feature Importances">
+                </div>
+                <div class="plot-card">
+                    <h3><i class="fa-solid fa-chart-column"></i> Acoustic Feature KDE Distributions</h3>
+                    <img src="/outputs/feature_distributions.png" alt="Feature Distributions">
+                </div>
+                <div class="plot-card">
+                    <h3><i class="fa-solid fa-grip"></i> Correlation Heatmap Matrix</h3>
+                    <img src="/outputs/correlation_heatmap.png" alt="Correlation Heatmap">
+                </div>
+                <div class="plot-card">
+                    <h3><i class="fa-solid fa-scale-balanced"></i> Class Balance (Healthy vs PD)</h3>
+                    <img src="/outputs/class_balance.png" alt="Class Balance">
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        Parkinson's Disease Prediction ML System &bull; Biomedical Voice Biomarker Decision Support System &bull; Standard UCI Oxford Dataset Schema
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let cachedSamples = null;
+
+        // Fetch sample profiles on page load
+        async function fetchSamples() {
+            try {
+                const res = await fetch('/api/samples');
+                if (res.ok) {
+                    cachedSamples = await res.json();
+                }
+            } catch (err) {
+                console.error("Could not fetch samples:", err);
+            }
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // Load Preset Sample Data into Form
+        function loadSample(type) {
+            if (!cachedSamples || !cachedSamples[type]) {
+                alert("Samples loading... please try again in a moment.");
+                return;
+            }
+
+            const sample = cachedSamples[type];
+            for (const [key, val] of Object.entries(sample)) {
+                const el = document.getElementById(key);
+                if (el) {
+                    el.value = val;
+                }
+            }
+
+            // Auto-trigger prediction
+            handlePredict();
+        }
+
+        // Handle Prediction API Call
+        async function handlePredict(event) {
+            if (event) event.preventDefault();
+
+            const featureKeys = [
+                "MDVP:Fo(Hz)", "MDVP:Fhi(Hz)", "MDVP:Flo(Hz)",
+                "MDVP:Jitter(%)", "MDVP:Jitter(Abs)", "MDVP:RAP", "MDVP:PPQ", "Jitter:DDP",
+                "MDVP:Shimmer", "MDVP:Shimmer(dB)", "Shimmer:APQ3", "Shimmer:APQ5", "MDVP:APQ", "Shimmer:DDA",
+                "NHR", "HNR", "RPDE", "DFA", "spread1", "spread2", "D2", "PPE"
+            ];
+
+            const patientData = {};
+            for (const key of featureKeys) {
+                const el = document.getElementById(key);
+                if (el) {
+                    patientData[key] = parseFloat(el.value);
+                }
+            }
+
+            try {
+                const res = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(patientData)
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json();
+                    alert("Prediction error: " + (errData.error || "Unknown server error"));
+                    return;
+                }
+
+                const result = await res.json();
+                updateResultsUI(result);
+
+            } catch (err) {
+                console.error("Failed to connect to server:", err);
+                alert("Network error. Make sure the backend app is running.");
+            }
+        }
+
+        // Update UI Results Panel
+        function updateResultsUI(result) {
+            const probPct = (result.probability_pd * 100).toFixed(1);
+            document.getElementById('prob-val').innerText = `${probPct}%`;
+
+            // Update circular gauge
+            const circle = document.getElementById('prob-circle');
+            const deg = (result.probability_pd * 360).toFixed(1);
+            
+            let color = 'var(--risk-low)';
+            if (result.risk_band === 'Moderate Risk') color = 'var(--risk-mod)';
+            if (result.risk_band === 'High Risk') color = 'var(--risk-high)';
+
+            circle.style.background = `conic-gradient(${color} ${deg}deg, var(--bg-subtle) ${deg}deg)`;
+
+            // Update Risk Badge
+            const badge = document.getElementById('risk-badge');
+            badge.className = `risk-badge ${result.risk_band.toLowerCase().replace(' ', '-')}`;
+
+            let icon = '<i class="fa-solid fa-circle-check"></i>';
+            if (result.risk_band === 'Moderate Risk') icon = '<i class="fa-solid fa-circle-exclamation"></i>';
+            if (result.risk_band === 'High Risk') icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+
+            badge.innerHTML = `${icon} ${result.risk_band} (${result.prediction_label})`;
+
+            // Update Recommendation & Model Name
+            document.getElementById('res-recommendation').innerText = result.clinical_recommendation;
+            document.getElementById('res-model-used').innerText = result.model_used;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchSamples();
+            handlePredict();
+        });
+    </script>
+</body>
+</html>

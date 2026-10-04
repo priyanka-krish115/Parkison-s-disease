@@ -1,0 +1,62 @@
+{
+    "best_model_name": "XGBoost",
+    "best_params": {
+        "learning_rate": 0.2,
+        "max_depth": 3,
+        "n_estimators": 100
+    },
+    "cv_results": {
+        "Logistic Regression": {
+            "mean_roc_auc": 0.9004011387163562,
+            "std_roc_auc": 0.04421778305793512
+        },
+        "Random Forest": {
+            "mean_roc_auc": 0.9374158902691512,
+            "std_roc_auc": 0.029888752658333243
+        },
+        "SVM (RBF Kernel)": {
+            "mean_roc_auc": 0.9082168737060041,
+            "std_roc_auc": 0.04176491862232944
+        },
+        "XGBoost": {
+            "mean_roc_auc": 0.964829192546584,
+            "std_roc_auc": 0.021932737402633216
+        }
+    },
+    "test_metrics": {
+        "accuracy": 0.8974358974358975,
+        "precision": 0.9310344827586207,
+        "recall_sensitivity": 0.9310344827586207,
+        "specificity": 0.8,
+        "f1_score": 0.9310344827586207,
+        "roc_auc": 0.9689655172413792,
+        "true_negatives": 8,
+        "false_positives": 2,
+        "false_negatives": 2,
+        "true_positives": 27
+    },
+    "feature_names": [
+        "MDVP:Fo(Hz)",
+        "MDVP:Fhi(Hz)",
+        "MDVP:Flo(Hz)",
+        "MDVP:Jitter(%)",
+        "MDVP:Jitter(Abs)",
+        "MDVP:RAP",
+        "MDVP:PPQ",
+        "Jitter:DDP",
+        "MDVP:Shimmer",
+        "MDVP:Shimmer(dB)",
+        "Shimmer:APQ3",
+        "Shimmer:APQ5",
+        "MDVP:APQ",
+        "Shimmer:DDA",
+        "NHR",
+        "HNR",
+        "RPDE",
+        "DFA",
+        "spread1",
+        "spread2",
+        "D2",
+        "PPE"
+    ]
+}
