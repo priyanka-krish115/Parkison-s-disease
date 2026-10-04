@@ -6,10 +6,10 @@ Serves interactive REST API endpoints and web interface on localhost.
 import os
 import sys
 import json
+import csv
 import logging
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
-import pandas as pd
 
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
@@ -158,13 +158,20 @@ def api_metadata():
 
         metadata = {}
         if os.path.exists(meta_path):
-            with open(meta_path, "r") as f:
+            with open(meta_path, "r", encoding="utf-8") as f:
                 metadata = json.load(f)
 
         importances = []
         if os.path.exists(imp_path):
-            df_imp = pd.read_csv(imp_path)
-            importances = df_imp.to_dict(orient="records")
+            with open(imp_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if "importance" in row:
+                        try:
+                            row["importance"] = float(row["importance"])
+                        except ValueError:
+                            pass
+                    importances.append(row)
 
         return jsonify({
             "metadata": metadata,
